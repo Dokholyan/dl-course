@@ -23,25 +23,43 @@ class Module:
 class Linear(Module):
     def __init__(self, in_features, out_features, bias: bool = True):
         """Initializing model"""
+        stvd = 1. / np.sqrt(in_features)
+        self.W = Tensor(np.random.uniform(-stvd, stvd, size=(in_features, out_features)))
+        self.bias = bias
+        if bias:
+            self.b = Tensor(np.random.uniform(-stvd, stvd, size=out_features))
         # Create Linear Module
 
     def forward(self, inp):
         """Y = W * x + b"""
-        return ...
+        out = inp.dot(self.W)  # .dot(self.W.data.transpose((1, 0)))
+        if self.bias:
+            out += self.b
+        return out
 
     def parameters(self):
-        return ...
+        parameters_list = self.W.parameters()
+        if self.bias:
+            parameters_list.extend(self.b.parameters())
+        return parameters_list
 
 
 class ReLU(Module):
     """The most simple and popular activation function"""
     def forward(self, inp):
         # Create ReLU Module
-        return ...
+        return inp.relu()  # ...
+
+
+class Sigmoid(Module):
+
+    def forward(self, inp):
+        return 1. / (1. + (-inp).exp())
 
 
 class CrossEntropyLoss(Module):
     """Cross-entropy loss for multi-class classification"""
-    def forward(self, inp, label):
+    def forward(self, prediction, targets):
+        return -((-prediction + 1).log() * (- targets + 1) + (prediction.log() * targets)).mean(0)
         # Create CrossEntropy Loss Module
-        return ...
+        # return -(inp.log() * label).sum(dim=0)  #  .mean(0) ...
